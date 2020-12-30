@@ -1,0 +1,46 @@
+{
+  "name": "git-hangout",
+  "version": "1.0.0",
+  "description": "Github webhooks for Google Chat",
+  "private": true,
+  "author": "Google LLC.",
+  "license": "Apache-2.0",
+  "repository": "https://github.com/googleapis/repo-automation-bots.git",
+  "homepage": "https://github.com/googleapis/repo-automation-bots",
+  "bugs": "https://github.com/googleapis/repo-automation-bots/issues",
+  "main": "index.js",
+  "keywords": [
+    "probot",
+    "github",
+    "probot-app"
+  ],
+  "scripts": {
+    "compile": "tsc -p .",
+    "start": "npm run compile && probot run ./build/src/git-hangout.js",
+    "pretest": "npm run compile",
+    "test": "cross-env LOG_LEVEL=fatal c8 mocha --exit ./test",
+    "fix": "gts fix",
+    "lint": "gts lint",
+    "deploy": "npm run compile && cp package.json ./build/src && gcloud functions deploy git-hangout-test --entry-point gitHangout --source ./build/src --runtime nodejs12 --trigger-http --allow-unauthenticated --env-vars-file .env.yml"
+  },
+  "dependencies": {
+    "axios": "^0.21.1",
+    "gcf-utils": "^6.3.0",
+    "probot": "^11.0.1"
+  },
+  "devDependencies": {
+    "@types/mocha": "^8.0.0",
+    "@types/node": "^12.6.1",
+    "c8": "^7.3.5",
+    "cross-env": "^7.0.0",
+    "gts": "^3.0.3",
+    "mocha": "^8.2.1",
+    "nock": "^13.0.5",
+    "smee-client": "^1.1.0",
+    "tslint": "^6.1.3",
+    "typescript": "~4.1.0"
+  },
+  "engines": {
+    "node": ">= 12.18.2"
+  }
+}
