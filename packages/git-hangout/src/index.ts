@@ -12,34 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// import {GCFBootstrapper} from 'gcf-utils';
-// import appFn from './git-hangout';
-//
-// // eslint-disable-next-line @typescript-eslint/no-var-requires
-// require('@google-cloud/debug-agent').start();
-//
-// const bootstrap = new GCFBootstrapper();
-// module.exports['git_hangout'] = bootstrap.gcf(appFn, {
-//   background: true,
-//   logging: true
-// });
-
 import {createNodeMiddleware, createProbot} from 'probot';
 import handler from './git-hangout';
 
 module.exports.gitHangout = createNodeMiddleware(handler, {
   probot: createProbot(),
 });
-
-// import {GCFBootstrapper} from 'gcf-utils';
-// import handler =  require('./git-hangout')
-// import {ApplicationFunction} from 'probot';        // the handler that will be called for probot events, of type ApplicationFunction
-//
-// const bootstrap = new GCFBootstrapper();
-//
-// const wrapOptions =  {
-//   background: true,     // enables the use of Cloud Tasks to execute in the background
-//   logging: true,        // enables automatic logging of metrics
-// }
-//
-// module.exports['gitHangout'] = bootstrap.gcf(handler as ApplicationFunction, wrapOptions);

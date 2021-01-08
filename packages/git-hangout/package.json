@@ -24,8 +24,11 @@
     "deploy": "npm run compile && cp package.json ./build/src && gcloud functions deploy git-hangout-test --entry-point gitHangout --source ./build/src --runtime nodejs12 --trigger-http --allow-unauthenticated --env-vars-file .env.yml"
   },
   "dependencies": {
+    "@types/cors": "^2.8.9",
     "axios": "^0.21.1",
+    "cors": "^2.8.5",
     "gcf-utils": "^6.3.0",
+    "googleapis": "^67.0.0",
     "probot": "^11.0.1"
   },
   "devDependencies": {

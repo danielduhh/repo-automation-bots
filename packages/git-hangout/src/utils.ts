@@ -1,3 +1,9 @@
+import {chat_v1, Auth, google} from 'googleapis'
+const auth = new Auth.GoogleAuth({
+  scopes: 'https://www.googleapis.com/auth/chat.bot'
+})
+
+
 export interface Configuration {
   CHAT_WEBHOOK_URL?: string;
 }
@@ -32,3 +38,17 @@ export const getCardHeader = (event = '', repository = '') => {
     imageStyle: 'IMAGE',
   };
 };
+
+export const getChatClient = async () => {
+  let authClient;
+  let chatClient;
+
+  try {
+    authClient = await auth.getClient();
+    chatClient = new chat_v1.Chat({auth: authClient})
+  } catch (error) {
+    throw new Error("Unable to Authenticate with Chat API.")
+  }
+  // google.options({auth: authClient})
+  return chatClient
+}

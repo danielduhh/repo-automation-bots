@@ -13,14 +13,17 @@
 // limitations under the License.
 
 import axios from 'axios';
+import * as express from 'express'
 import {logger} from 'gcf-utils';
-import {Probot} from 'probot';
+import {ApplicationFunctionOptions, Probot} from 'probot';
 import {
   createColorText,
   createGithubButton,
   getCardHeader,
   truncateText,
 } from './utils';
+import {router as bot} from './bot'
+import * as cors from 'cors';
 
 const CONFIGURATION_FILE_PATH = 'git-hangout.yml';
 
@@ -28,9 +31,18 @@ interface Configuration {
   CHAT_WEBHOOK_URL?: string;
 }
 
-export default function handler(app: Probot) {
+export default function handler(app: Probot, {getRouter}: ApplicationFunctionOptions) {
+
+  // @ts-ignore
+  const router = getRouter("git-hangout");
+  router.use(express.json())
+  router.use(cors({}))
+  router.use(bot)
+
   app.on(['issues.opened', 'issue_comment'], async (context: any) => {
     let config: Configuration = {};
+    // TODO remove configuration (token is no longer needed)
+    // TODO look up all chatrooms that match the incoming event and send message
     try {
       config = (await context.config(
         CONFIGURATION_FILE_PATH
