@@ -1,0 +1,67 @@
+{
+  "user": {
+    "type": "HUMAN",
+    "name": "users/107758954458759313832",
+    "email": "dbaah@cloudadvocacyorg.joonix.net",
+    "domainId": "1yk7tgm",
+    "displayName": "Daniel Baah",
+    "avatarUrl": "https://lh3.googleusercontent.com/-x4R3Ag48Tyg/AAAAAAAAAAI/AAAAAAAAAAA/AMZuucmo__rY3aUzhlTOTPpieONpyjGdSw/k/photo.jpg"
+  },
+  "configCompleteRedirectUrl": "https://chat.google.com/api/bot_config_complete?token=AAJCfVXcloT9nN7nSMDQU6GO5eSpexXhTN4j5YS1ZiOMciK5bcjpAORIt0a8eI_I3PJBdl-338XB2uHxZGf8nn95qFNzcV1cKazXAsy24OoIfX2GD6mBj4ZbXCq_ywTFB8Mt6o_utEbaXTYWrdEV",
+  "level": 30,
+  "type": "MESSAGE",
+  "eventTime": "2021-01-14T19:27:55.056079Z",
+  "space": {
+    "displayName": "test github bot",
+    "name": "spaces/AAAAmI_jkz8",
+    "threaded": true,
+    "type": "ROOM"
+  },
+  "message": {
+    "space": {
+      "displayName": "test github bot",
+      "type": "ROOM",
+      "name": "spaces/AAAAmI_jkz8",
+      "threaded": true
+    },
+    "sender": {
+      "displayName": "Daniel Baah",
+      "domainId": "1yk7tgm",
+      "email": "dbaah@cloudadvocacyorg.joonix.net",
+      "avatarUrl": "https://lh3.googleusercontent.com/-x4R3Ag48Tyg/AAAAAAAAAAI/AAAAAAAAAAA/AMZuucmo__rY3aUzhlTOTPpieONpyjGdSw/k/photo.jpg",
+      "name": "users/107758954458759313832",
+      "type": "HUMAN"
+    },
+    "createTime": "2021-01-14T19:27:55.056079Z",
+    "thread": {
+      "retentionSettings": {
+        "state": "PERMANENT"
+      },
+      "name": "spaces/AAAAmI_jkz8/threads/WezIpuaIwIU"
+    },
+    "argumentText": " danielduhh/hitched issues",
+    "slashCommand": {
+      "commandId": "1"
+    },
+    "annotations": [
+      {
+        "slashCommand": {
+          "commandName": "/subscribe",
+          "bot": {
+            "name": "users/108369857704723868557",
+            "avatarUrl": "https://lh3.googleusercontent.com/proxy/p3mSfQtf-xADb2Us8knTTzMHpQwoBKW5JU3ZISKETZMJ72D3uQMJ9Xa2JbRM1vuYVev448pQU2VgOaz0RCMq0GnlfvX20ruFgNdM9XKmDOTlIgw6yocpurQ",
+            "type": "BOT",
+            "displayName": "git hangouts test"
+          },
+          "type": "INVOKE",
+          "commandId": "1"
+        },
+        "length": 10,
+        "type": "SLASH_COMMAND",
+        "startIndex": 0
+      }
+    ],
+    "name": "spaces/AAAAmI_jkz8/messages/WezIpuaIwIU.OL8X6DJsugQ",
+    "text": "/subscribe danielduhh/hitched issues"
+  }
+}

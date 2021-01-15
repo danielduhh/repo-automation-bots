@@ -19,11 +19,14 @@ import {ApplicationFunctionOptions, Probot} from 'probot';
 import {
   createColorText,
   createGithubButton,
-  getCardHeader,
+  getCardHeader, getChatClient,
   truncateText,
 } from './utils';
 import {router as bot} from './bot'
 import * as cors from 'cors';
+import {Datastore, getSpaceFromEvent} from './datastore';
+import Knex from 'knex';
+import {ApplicationFunction} from 'probot/lib/types';
 
 const CONFIGURATION_FILE_PATH = 'git-hangout.yml';
 
@@ -31,37 +34,34 @@ interface Configuration {
   CHAT_WEBHOOK_URL?: string;
 }
 
-export default function handler(app: Probot, {getRouter}: ApplicationFunctionOptions) {
-
-  // @ts-ignore
-  const router = getRouter("git-hangout");
-  router.use(express.json())
-  router.use(cors({}))
-  router.use(bot)
+const handler = (app: Probot) => {
 
   app.on(['issues.opened', 'issue_comment'], async (context: any) => {
-    let config: Configuration = {};
-    // TODO remove configuration (token is no longer needed)
-    // TODO look up all chatrooms that match the incoming event and send message
-    try {
-      config = (await context.config(
-        CONFIGURATION_FILE_PATH
-      )) as Configuration;
+    const database:Knex = Datastore.getInstance();
 
-      if (!config.CHAT_WEBHOOK_URL) {
-        logger.error(`Missing configuration ${config}`)
-        return
-      }
-    } catch (error) {
-      logger.error(`Error reading configuration: ${error.message}`);
-      logger.error(error);
-
-      return;
-    }
+    // let config: Configuration = {};
+    // // TODO remove configuration (token is no longer needed)
+    // // TODO look up all chatrooms that match the incoming event and send message
+    // try {
+    //   config = (await context.config(
+    //     CONFIGURATION_FILE_PATH
+    //   )) as Configuration;
+    //
+    //   if (!config.CHAT_WEBHOOK_URL) {
+    //     logger.error(`Missing configuration ${config}`)
+    //     return
+    //   }
+    // } catch (error) {
+    //   logger.error(`Error reading configuration: ${error.message}`);
+    //   logger.error(error);
+    //
+    //   return;
+    // }
 
     const {payload, name} = context;
     const {repository, issue, action, comment} = payload;
     const issueType = payload.issue.pull_request ? 'Pull Request' : 'Issue';
+
     const labels =
       action === 'opened'
         ? issue.labels
@@ -115,16 +115,31 @@ export default function handler(app: Probot, {getRouter}: ApplicationFunctionOpt
     };
 
     try {
-      const response = await axios.post(
-        `${config.CHAT_WEBHOOK_URL}&threadKey=${payload.issue.node_id}`,
-        card
-      );
-      logger.info(
-        `Successfully processed: ${context.name} event from: ${repository.full_name}. Status: ${response.status}`
-      );
+      // Check if we have subscriptions for incoming repository and event
+      const spaces  = await getSpaceFromEvent(database, name, repository.full_name)
+      // If we have more than one space, continue, else return nothing
+      if (spaces.length > 0) {
+
+        const CHAT_CLIENT = await getChatClient();
+        const response = await Promise.all(spaces.map(async (space) => {
+          return await CHAT_CLIENT.spaces.messages.create({
+            parent: space.name,
+            threadKey: payload.issue.node_id,
+            requestBody: card
+          })
+        }))
+
+        logger.info(
+            `Successfully delivered events to ${spaces.map(space => space.name).join(", ")} from: ${repository.full_name}. Status: ${response.map(r => r.status)}`
+        );
+
+      }
+      else {
+        logger.info(`No registered spaces for event: ${name}, repo: ${repository.full_name}`)
+      }
     } catch (error) {
       logger.error(
-        `Failed to process event: ${context.name} from ${repository.full_name}. Error: ${error.message}. URI: ${config.CHAT_WEBHOOK_URL}&threadKey=${issue.node_id}`,
+        `Failed to process event: ${context.name} from ${repository.full_name}. Error: ${error.message}`,
         error
       );
       logger.error(error);
@@ -210,3 +225,5 @@ export default function handler(app: Probot, {getRouter}: ApplicationFunctionOpt
     return;
   });
 }
+
+export default handler

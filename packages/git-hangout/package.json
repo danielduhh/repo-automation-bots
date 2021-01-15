@@ -15,13 +15,14 @@
     "probot-app"
   ],
   "scripts": {
+    "debug": "npm run compile && node ./build/src/server.js",
     "compile": "tsc -p .",
     "start": "npm run compile && probot run ./build/src/git-hangout.js",
     "pretest": "npm run compile",
     "test": "cross-env LOG_LEVEL=fatal c8 mocha --exit ./test",
     "fix": "gts fix",
     "lint": "gts lint",
-    "deploy": "npm run compile && cp package.json ./build/src && gcloud functions deploy git-hangout-test --entry-point gitHangout --source ./build/src --runtime nodejs12 --trigger-http --allow-unauthenticated --env-vars-file .env.yml"
+    "deploy": "npm run compile && cp package.json ./build/src && gcloud functions deploy git-hangout-test --entry-point gitHangout --source ./build/src --runtime nodejs12 --trigger-http --allow-unauthenticated --env-vars-file .env.yml && gcloud functions deploy git-hangout-test --entry-point gitHangoutBot --source ./build/src --runtime nodejs12 --trigger-http --allow-unauthenticated --env-vars-file .env.yml"
   },
   "dependencies": {
     "@types/cors": "^2.8.9",
@@ -29,7 +30,9 @@
     "cors": "^2.8.5",
     "gcf-utils": "^6.3.0",
     "googleapis": "^67.0.0",
-    "probot": "^11.0.1"
+    "knex": "^0.21.15",
+    "pg": "^8.5.1",
+    "probot": "11.0.1"
   },
   "devDependencies": {
     "@types/mocha": "^8.0.0",
