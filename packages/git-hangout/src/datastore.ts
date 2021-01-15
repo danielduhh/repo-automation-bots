@@ -1,12 +1,12 @@
-import * as Knex from 'knex'
+import * as Knex from 'knex';
 import {logger} from 'gcf-utils';
 
 type Events =
-    "issues"
-    | "issue_comment"
-    | "pull_request"
-    | "pull_request_review"
-    | "pull_request_review_comment"
+  | 'issues'
+  | 'issue_comment'
+  | 'pull_request'
+  | 'pull_request_review'
+  | 'pull_request_review_comment';
 
 const getConfig = () => {
   // Configure which instance and what database user to connect with.
@@ -44,10 +44,14 @@ const getConfig = () => {
   config.createRetryIntervalMillis = 200; // 0.2 seconds
   // [END cloud_sql_postgres_knex_backoff]
 
-  return config
+  return config;
 };
 
-export const getSpaceFromEvent = async (db: Knex, event_name: string, repo_name: string) => {
+export const getSpaceFromEvent = async (
+  db: Knex,
+  event_name: string,
+  repo_name: string
+) => {
   try {
     // SELECT space.name as "space_name"
     // FROM subscription s, space, event e, repository r
@@ -57,131 +61,122 @@ export const getSpaceFromEvent = async (db: Knex, event_name: string, repo_name:
     // AND e.name = event_name
     // AND r.name = repo_name
     const space = await db('subscription')
-        .join('space', 'subscription.space_id', 'space.id')
-        .join('event', 'subscription.event_id', 'event.id')
-        .join('repository', 'subscription.repository_id', 'repository.id')
-        .select('space.name')
-        .where('event.name', event_name)
-        .andWhere('repository.name', repo_name)
-        .returning('space.name')
+      .join('space', 'subscription.space_id', 'space.id')
+      .join('event', 'subscription.event_id', 'event.id')
+      .join('repository', 'subscription.repository_id', 'repository.id')
+      .select('space.name')
+      .where('event.name', event_name)
+      .andWhere('repository.name', repo_name)
+      .returning('space.name');
 
-    return space
-
+    return space;
   } catch (error) {
-
-    console.log(error)
-    return Promise.reject(error)
+    console.log(error);
+    return Promise.reject(error);
   }
-}
+};
 
-export const getSpace = async (db: Knex, space_name: string, active: boolean = true) => {
-
+export const getSpace = async (db: Knex, space_name: string, active = true) => {
   try {
     const space = await db('space')
-        .returning(['id', 'name'])
-        .insert({
-          name: space_name,
-          active: active,
-          date_created: new Date().toDateString()
-        })
-        .onConflict('name')
-        .merge()
+      .returning(['id', 'name'])
+      .insert({
+        name: space_name,
+        active: active,
+        date_created: new Date().toDateString(),
+      })
+      .onConflict('name')
+      .merge();
 
-    console.log(space)
+    console.log(space);
 
-    return space[0]
+    return space[0];
   } catch (error) {
-
-    console.log(error)
-    return Promise.reject(error)
+    console.log(error);
+    return Promise.reject(error);
   }
-}
+};
 
-export const createSubscription = async (db: Knex, space_name: string, repo_name: string, event_name: Events) => {
-
+export const createSubscription = async (
+  db: Knex,
+  space_name: string,
+  repo_name: string,
+  event_name: Events
+) => {
   // 1. Get the repository id
   // 1. Get the event id
-  logger.info(`Creating subscription for: space: ${space_name}, repo: ${repo_name}, event: ${event_name}`)
+  logger.info(
+    `Creating subscription for: space: ${space_name}, repo: ${repo_name}, event: ${event_name}`
+  );
 
   try {
-    const repository = await getRepository(db, repo_name)
-    const event = await getEvent(db, event_name)
-    const space = await getSpace(db, space_name)
+    const repository = await getRepository(db, repo_name);
+    const event = await getEvent(db, event_name);
+    const space = await getSpace(db, space_name);
 
     const subscription = await db('subscription')
-        .returning('id')
-        .insert({
-          repository_id: repository.id,
-          space_id: space.id,
-          event_id: event.id
-        }).onConflict(['repository_id', 'space_id', 'event_id'])
-        .ignore()
+      .returning('id')
+      .insert({
+        repository_id: repository.id,
+        space_id: space.id,
+        event_id: event.id,
+      })
+      .onConflict(['repository_id', 'space_id', 'event_id'])
+      .ignore();
 
-
-    return subscription
+    return subscription;
   } catch (error) {
-
-    logger.error('Failed to create subscription')
-    logger.error(error)
-    return Promise.reject(error)
+    logger.error('Failed to create subscription');
+    logger.error(error);
+    return Promise.reject(error);
   }
-}
+};
 
 const getRepository = async (db: Knex, name: string) => {
   // 1. Check if repo exists, if so return the id
 
   try {
     const repository = await db('repository')
-        .returning(['id', 'name'])
-        .insert({
-          name: name
-        })
-        .onConflict('name')
-        .merge()
+      .returning(['id', 'name'])
+      .insert({
+        name: name,
+      })
+      .onConflict('name')
+      .merge();
 
-    return repository[0]
+    return repository[0];
   } catch (error) {
-
-    console.log(error)
-    return Promise.reject(error)
+    console.log(error);
+    return Promise.reject(error);
   }
-
-}
+};
 
 const getEvent = async (db: Knex, name: string) => {
-
   try {
-    const event = await db('event')
-        .where('name', name)
-        .select('id')
+    const event = await db('event').where('name', name).select('id');
 
-    return event[0]
-
+    return event[0];
   } catch (error) {
-
-    console.log(error)
-    return Promise.reject(error)
+    console.log(error);
+    return Promise.reject(error);
   }
-
-}
+};
 
 export class Datastore {
   private static instance: Knex;
 
-  private constructor() {
-  }
+  private constructor() {}
 
   public static getInstance() {
     if (!Datastore.instance) {
-      Datastore.init()
+      Datastore.init();
     }
 
-    return Datastore.instance
+    return Datastore.instance;
   }
 
   public static init() {
-
-    let instance:Knex;
+    let instance: Knex;
 
     if (process.env.DB_HOST) {
       instance = Knex({
@@ -197,7 +192,6 @@ export class Datastore {
         ...getConfig(),
       });
     } else {
-
       const dbSocketPath = process.env.DB_SOCKET_PATH || '/cloudsql';
       instance = Knex({
         client: 'pg',
@@ -212,7 +206,7 @@ export class Datastore {
       });
     }
 
-    Datastore.instance = instance
+    Datastore.instance = instance;
 
     //TODO run a sanity check that we have the connection
   }

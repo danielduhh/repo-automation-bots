@@ -14,8 +14,10 @@
 
 import {createNodeMiddleware, createProbot} from 'probot';
 import handler from './git-hangout';
-import bot from './bot'
+import bot from './bot';
 
-module.exports.gitHangout = createNodeMiddleware(handler, {probot: createProbot()})
+module.exports.gitHangout = createNodeMiddleware(handler, {
+  probot: createProbot(),
+});
 
-module.exports.gitHangoutBot = bot
+module.exports.gitHangoutBot = bot;
