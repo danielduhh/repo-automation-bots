@@ -97,34 +97,72 @@ export const getSpace = async (db: Knex, space_name: string, active = true) => {
   }
 };
 
+export const deactivateSpace = async (db: Knex, name: string) => {
+  try {
+    const space: any[] = await db('space')
+      .where({
+        name: name,
+      })
+      .returning(['id', 'name', 'active'])
+      .update({
+        active: false,
+      });
+
+    // Remove all subscriptions associated with space.
+    const subscriptions = await db('subscription')
+      .where({
+        space_id: space[0].id,
+      })
+      .delete();
+
+    if (space.length > 0) {
+      logger.info(
+        `Successfully updated space: ${space} and removed related subscriptions.`
+      );
+    }
+
+    return space;
+  } catch (error) {
+    logger.error(`Failed to update space ${name}.`);
+    logger.error(error);
+    return Promise.reject(error);
+  }
+};
+
 export const createSubscription = async (
   db: Knex,
   space_name: string,
   repo_name: string,
-  event_name: Events
+  events: Events[]
 ) => {
   // 1. Get the repository id
   // 1. Get the event id
   logger.info(
-    `Creating subscription for: space: ${space_name}, repo: ${repo_name}, event: ${event_name}`
+    `Creating subscription for: space: ${space_name}, repo: ${repo_name}, events: ${events.join(
+      ', '
+    )}`
   );
 
   try {
-    const repository = await getRepository(db, repo_name);
-    const event = await getEvent(db, event_name);
-    const space = await getSpace(db, space_name);
+    const subscriptions = Promise.all(
+      events.map(async event_name => {
+        const repository = await getRepository(db, repo_name);
+        const event = await getEvent(db, event_name);
+        const space = await getSpace(db, space_name);
 
-    const subscription = await db('subscription')
-      .returning('id')
-      .insert({
-        repository_id: repository.id,
-        space_id: space.id,
-        event_id: event.id,
+        return db('subscription')
+          .returning('id')
+          .insert({
+            repository_id: repository.id,
+            space_id: space.id,
+            event_id: event.id,
+          })
+          .onConflict(['repository_id', 'space_id', 'event_id'])
+          .ignore();
       })
-      .onConflict(['repository_id', 'space_id', 'event_id'])
-      .ignore();
+    );
 
-    return subscription;
+    return subscriptions;
   } catch (error) {
     logger.error('Failed to create subscription');
     logger.error(error);
@@ -132,9 +170,40 @@ export const createSubscription = async (
   }
 };
 
-const getRepository = async (db: Knex, name: string) => {
-  // 1. Check if repo exists, if so return the id
+export const removeSubscription = async (
+  db: Knex,
+  space_name: string,
+  repo_name: string,
+  event_name: Events
+) => {
+  try {
+    const repository = await getRepository(db, repo_name);
+    const event = await getEvent(db, event_name);
+    const space = await getSpace(db, space_name);
 
+    const subscription = await db('subscription')
+      .where({
+        repository_id: repository.id,
+        space_id: space.id,
+        event_id: event.id,
+      })
+      .delete();
+
+    logger.info(
+      `Unsubscribing ${space_name} from ${subscription} subscriptions (${repo_name} ${event_name}).`
+    );
+
+    return subscription;
+  } catch (error) {
+    logger.error(
+      `Failed to delete ${event_name} subscription for ${repo_name}.`
+    );
+    logger.error(error);
+    return Promise.reject(error);
+  }
+};
+
+const getRepository = async (db: Knex, name: string) => {
   try {
     const repository = await db('repository')
       .returning(['id', 'name'])
@@ -175,7 +244,7 @@ export class Datastore {
     return Datastore.instance;
   }
 
-  public static init() {
+  private static init() {
     let instance: Knex;
 
     if (process.env.DB_HOST) {

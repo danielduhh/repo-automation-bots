@@ -13,11 +13,11 @@
 // limitations under the License.
 
 import {createNodeMiddleware, createProbot} from 'probot';
-import handler from './git-hangout';
+import handler from './git-hangouts';
 import bot from './bot';
 
-module.exports.gitHangout = createNodeMiddleware(handler, {
+module.exports.gitHangouts = createNodeMiddleware(handler, {
   probot: createProbot(),
 });
 
-module.exports.gitHangoutBot = bot;
+module.exports.gitHangoutsBot = bot;

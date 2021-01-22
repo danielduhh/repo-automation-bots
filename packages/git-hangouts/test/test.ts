@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-const appFn = require('./git-hangout');
+const appFn = require('./git-hangouts');
 import {resolve} from 'path';
 import {Probot, createProbot, ProbotOctokit} from 'probot';
 // eslint-disable-next-line node/no-unpublished-import
@@ -26,7 +26,7 @@ nock.disableNetConnect();
 
 const fixturesPath = resolve(__dirname, '../../test/fixtures');
 
-describe('git-hangout', () => {
+describe('git-hangouts', () => {
   let probot: Probot;
 
   const config = fs.readFileSync(

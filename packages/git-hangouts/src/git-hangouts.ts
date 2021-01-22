@@ -12,7 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import axios from 'axios';
 import {logger} from 'gcf-utils';
 import {Probot} from 'probot';
 import {
@@ -24,12 +23,6 @@ import {
 } from './utils';
 import {Datastore, getSpaceFromEvent} from './datastore';
 import Knex from 'knex';
-
-const CONFIGURATION_FILE_PATH = 'git-hangout.yml';
-
-interface Configuration {
-  CHAT_WEBHOOK_URL?: string;
-}
 
 const handler = (app: Probot) => {
   app.on(['issues.opened', 'issue_comment'], async (context: any) => {
@@ -134,6 +127,8 @@ const handler = (app: Probot) => {
   });
 
   app.on(['pull_request.opened'], async (context: any) => {
+    const database: Knex = Datastore.getInstance();
+
     const {payload, name} = context;
     const {repository, pull_request} = payload;
     const labels = pull_request.labels
@@ -172,21 +167,45 @@ const handler = (app: Probot) => {
       ],
     };
 
-    // try {
-    //   const response = await axios.post(
-    //     `${config.CHAT_WEBHOOK_URL}&threadKey=${pull_request.node_id}`,
-    //     card
-    //   );
-    //   logger.info(
-    //     `Successfully processed: ${context.name} event from: ${repository.full_name}. Status: ${response.status}`
-    //   );
-    // } catch (error) {
-    //   logger.error(
-    //     `Failed to process event: ${context.name} from ${repository.full_name}. Error: ${error.message}. URI: ${config.CHAT_WEBHOOK_URL}&threadKey=${pull_request.node_id}`,
-    //     error
-    //   );
-    //   logger.error(error);
-    // }
+    try {
+      // Check if we have subscriptions for incoming repository and event
+      const spaces = await getSpaceFromEvent(
+        database,
+        name,
+        repository.full_name
+      );
+      // If we have more than one space, continue, else return nothing
+      if (spaces.length > 0) {
+        const CHAT_CLIENT = await getChatClient();
+        const response = await Promise.all(
+          spaces.map(async space => {
+            return await CHAT_CLIENT.spaces.messages.create({
+              parent: space.name,
+              threadKey: pull_request.node_id,
+              requestBody: card,
+            });
+          })
+        );
+
+        logger.info(
+          `Successfully delivered events to ${spaces
+            .map(space => space.name)
+            .join(', ')} from: ${repository.full_name}. Status: ${response.map(
+            r => r.status
+          )}`
+        );
+      } else {
+        logger.info(
+          `No registered spaces for event: ${name}, repo: ${repository.full_name}`
+        );
+      }
+    } catch (error) {
+      logger.error(
+        `Failed to process event: ${context.name} from ${repository.full_name}. Error: ${error.message}`,
+        error
+      );
+      logger.error(error);
+    }
 
     return;
   });

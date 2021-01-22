@@ -22,7 +22,8 @@
     "test": "cross-env LOG_LEVEL=fatal c8 mocha --exit ./test",
     "fix": "gts fix",
     "lint": "gts lint",
-    "deploy": "npm run compile && cp package.json ./build/src && gcloud functions deploy git-hangout-test --entry-point gitHangout --source ./build/src --runtime nodejs12 --trigger-http --allow-unauthenticated --env-vars-file .env.yml && gcloud functions deploy git-hangout-test --entry-point gitHangoutBot --source ./build/src --runtime nodejs12 --trigger-http --allow-unauthenticated --env-vars-file .env.yml"
+    "deployBot": "npm run compile && cp package.json ./build/src && gcloud functions deploy git-hangout-test-bot --entry-point gitHangoutBot --source ./build/src --runtime nodejs12 --trigger-http --allow-unauthenticated --env-vars-file .env.yml",
+    "deploy": "npm run compile && cp package.json ./build/src && gcloud functions deploy git-hangout-test-webhook --entry-point gitHangout --source ./build/src --runtime nodejs12 --trigger-http --allow-unauthenticated --env-vars-file .env.yml && gcloud functions deploy git-hangout-test-bot --entry-point gitHangoutBot --source ./build/src --runtime nodejs12 --trigger-http --allow-unauthenticated --env-vars-file .env.yml"
   },
   "dependencies": {
     "@types/cors": "^2.8.9",
@@ -40,6 +41,7 @@
     "@types/node": "^12.6.1",
     "c8": "^7.3.5",
     "cross-env": "^7.0.0",
+    "eslint": "^7.18.0",
     "gts": "^3.0.3",
     "mocha": "^8.2.1",
     "nock": "^13.0.5",
