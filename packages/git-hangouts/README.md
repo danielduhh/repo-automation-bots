@@ -12,7 +12,7 @@ to your Google Chat room or direct message. Upon adding the bot, the following
 slash commands will be available.
 
 
-![Slash Commands](/repo-automation-bots/packages/git-hangouts/docs/slash-commands.png)
+![Slash Commands](/packages/git-hangouts/docs/slash-commands.png)
 
 | command            | args |  description | example
 |-------------------|----------|-------------|-------------------------------------|
@@ -23,7 +23,7 @@ slash commands will be available.
 
 The following card will be delivered to all subscribed chat rooms:
 
-![Example Card](/repo-automation-bots/packages/git-hangouts/docs/example-card.png)
+![Example Card](/packages/git-hangouts/docs/example-card.png)
 
 ## Design
 
