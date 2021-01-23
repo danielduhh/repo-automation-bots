@@ -84,13 +84,14 @@ const handleSlashCommand = async (db: Knex, body: any) => {
   logger.info(`Handling slash command: ${commandId}`);
 
   if (slashCommand) {
+    const trimmedText = argumentText.trim().split(' ');
+    // subscribe
+    const repository = trimmedText[0];
+    const events = trimmedText.slice(1, trimmedText.length);
+
     switch (commandId) {
       case '1': {
-        const trimmedText = argumentText.trim().split(' ');
         // subscribe
-        const repository = trimmedText[0];
-        // TODO handle multiple events
-        const events = trimmedText.slice(1, trimmedText.length);
         const subscription = await createSubscription(
           db,
           name,
@@ -106,19 +107,16 @@ const handleSlashCommand = async (db: Knex, body: any) => {
       }
       case '2': {
         //unsubscribe
-        const repository = argumentText.trim().split(' ')[0];
-        const event = argumentText.trim().split(' ')[1];
-
         const subscription = await removeSubscription(
           db,
           name,
           repository,
-          event
+          events
         );
 
         const message =
-          subscription > 0
-            ? `Unsubscribed from ${repository} ${event} events.`
+          subscription.length > 0
+            ? `Unsubscribed from ${repository} ${events.join(', ')} events.`
             : 'Subscription does not exist.';
 
         return {

@@ -47,14 +47,15 @@ The Chat API bot responds synchronously and asynchronously to events triggered i
 and through the Probot client.
 
 #### Postgres on Cloud SQL
-We use a small datastore to keep track of user registered repositories, events, and channels.
+We need a small relational database to keep track of user registered repositories, events, and channels.
+This allows us to have multiple channels subscribed to the same repositories.
 
 | table            | primary key |  description
 |-------------------|----------|--------------------------------------------------|
 | space           | id   |  Generalization of chat rooms and direct messages. Each space has a google generated unique id (e.g `spaces/AAAAzY_aki8`).  |
-| event           |   id | Name of github event. Stored as `X-GitHub-Event` header in webhook payload. |
-| repository      |   id  | Description here |
-| subscription    |  space_id, event_id, repository_id  | Description here |
+| event           |   id | Name of GitHub event. Stored as `X-GitHub-Event` header in webhook payload. |
+| repository      |   id  | Full name of GitHub repository (e.g. `googleapis/nodejs-storage`). |
+| subscription    |  space_id, event_id, repository_id  | Join table for spaces, events, and repository. Upon receiving event payload from probot, we run a SQL query to fetch all spaces that are subscribed to the incoming event repo, and specific event.|
 
 ## Running tests:
 
@@ -62,7 +63,7 @@ We use a small datastore to keep track of user registered repositories, events, 
 
 ## Contributing
 
-If you have suggestions for how git-hangout could be improved, or want to report a bug, open an issue! We'd love all and any contributions.
+If you have suggestions for how git-hangouts could be improved, or want to report a bug, open an issue! We'd love all and any contributions.
 
 For more, check out the Contributing Guide.
 
